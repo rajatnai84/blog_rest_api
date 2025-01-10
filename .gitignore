@@ -1,0 +1,73 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Django migrations
+**/migrations/
+
+# Database files
+*.sqlite3
+
+# Local environment settings
+.env
+
+# Static files
+/static/
+staticfiles/
+
+# Media files
+/media/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# IDE / Editor specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+*.orig
+.DS_Store
+
+# Logs
+*.log
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+
+# Test result files
+pytest_cache/
+.coverage
+.tox/
+.nox/
+
+# Build / distribution directories
+*.egg-info/
+*.eggs/
+dist/
+build/
+
+# Temporary files
+*.tmp
+*.bak
+*.old
+*.pid
+*.seed
+*.manifest
+*.spec
+
+# Celery beat schedule file
+celerybeat-schedule
+
+# Django secret key file
+secret_key.txt
+
