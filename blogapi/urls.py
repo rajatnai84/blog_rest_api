@@ -6,6 +6,7 @@ from blogapi import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('users.urls')),
+    path('blogs/', include('blogs.urls')),
 ]
 
 if settings.DEBUG:
