@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView, CreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.serializers import (LoginSerializer, UserRegisterSerializer,
@@ -12,6 +12,7 @@ User = get_user_model()
 class UserRegisterView(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserRegisterSerializer
+    permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
@@ -21,7 +22,7 @@ class UserListCreateView(ListAPIView):
     serializer_class = UserRegisterSerializer
     permission_classes = [IsAdminUser]
 
-class UserRetriveUpdateView(RetrieveUpdateDestroyAPIView):
+class UserRetrieveUpdateView(RetrieveUpdateDestroyAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
@@ -37,6 +38,8 @@ class UserRetriveUpdateView(RetrieveUpdateDestroyAPIView):
         )
 
 class LoginView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request, *args, **kwargs):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
