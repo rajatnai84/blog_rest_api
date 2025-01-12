@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Tag, Blog
+from .models import Category, Tag, Blog, Comment
 from rest_framework.exceptions import ValidationError
 from django.utils.timezone import now
 
@@ -13,6 +13,23 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = ('id','name')
 
+class CommentSerializer(serializers.ModelSerializer):
+    author_name = serializers.CharField(source='author.username', read_only=True)
+    
+    class Meta:
+        model = Comment
+        fields = (
+            'id',
+            'content', 
+            'blog', 
+            'author', 
+            'author_name', 
+            'created_at', 
+            'updated_at'
+        )
+        read_only_fields=(
+            'author', 'created_at', 'updated_at', 'blog'
+        )
 class BlogSerializer(serializers.ModelSerializer):
     tags = serializers.ListField(child=serializers.CharField(max_length=50),write_only=True, required=False)
     tag_details = TagSerializer(many=True, read_only=True, source='tags')
@@ -75,5 +92,4 @@ class BlogSerializer(serializers.ModelSerializer):
             if value == Blog.StatusChoices.PUBLISHED and not self.instance.published_at:
                 raise ValidationError({"detail":"If blog is published it have publishing date-time."})
         return value
-    
     

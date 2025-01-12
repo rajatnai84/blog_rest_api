@@ -1,7 +1,7 @@
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView
 
-from blogs.models import Category, Tag, Blog
-from blogs.serializers import CategorySerializer, TagSerializer, BlogSerializer
+from blogs.models import Category, Comment, Blog
+from blogs.serializers import CategorySerializer, BlogSerializer, CommentSerializer
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
@@ -10,6 +10,8 @@ from rest_framework import status
 from django.utils.timezone import now
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
+from django.shortcuts import get_object_or_404
+from rest_framework.pagination import PageNumberPagination
 
 class CategoryListCreateView(ListCreateAPIView):
     queryset = Category.objects.all()
@@ -46,11 +48,19 @@ class BlogRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         return Blog.objects.all()
     
-    def get_object(self):
-        obj = super().get_object()
-        if obj.author != self.request.user:
-            raise ValidationError({'detail': 'You are not authorized for this action.'})
-        return obj
+    def retrieve(self, request, *args, **kwargs):
+        blog = self.get_object()
+        paginator = PageNumberPagination()
+        paginator.page_size = 3
+        comments = blog.comments.all()
+        
+        paginated_comments = paginator.paginate_queryset(comments,request)
+        comment_serializer = CommentSerializer(paginated_comments, many=True)
+        
+        blog_serializer = self.get_serializer(blog)
+        response_data = blog_serializer.data 
+        response_data['paginated_comments'] = paginator.get_paginated_response(comment_serializer.data).data
+        return Response(response_data)
     
 class BlogChangeStatusView(APIView):
     permission_classes = [IsAuthenticated]
@@ -83,3 +93,35 @@ class BlogUserBlogsView(ListAPIView):
 
     def get_queryset(self):
         return Blog.objects.filter(author=self.request.user)
+    
+class CommentCreateView(ListCreateAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        blog_id = self.kwargs.get('blog_id')    
+        blog = get_object_or_404(Blog, id=blog_id, status=Blog.StatusChoices.PUBLISHED)
+        return Comment.objects.filter(blog=blog)
+    
+    def perform_create(self, serializer):
+        blog_id = self.kwargs.get('blog_id')
+        blog = get_object_or_404(Blog, id=blog_id, status=Blog.StatusChoices.PUBLISHED)
+        serializer.save(blog=blog, author=self.request.user)
+        
+class CommentRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Comment.objects.all()
+    
+    def perform_update(self, serializer):
+        comment = self.get_object()    
+        if comment.author != self.request.user:
+            return Response({"detail": "You are not authorized for this action."}, status=status.HTTP_401_UNAUTHORIZED)
+        serializer.save()
+        
+    def destroy(self, request, *args, **kwargs):
+        comment = self.get_object()    
+        if request.user != comment.author and request.user != comment.blog.author:
+            return Response({"detail": "You are not authorized for this action."}, status=status.HTTP_401_UNAUTHORIZED)
+        self.perform_destroy(comment)
+        return Response({"detail": "Comment deleted successfully."}, status=status.HTTP_204_NO_CONTENT)

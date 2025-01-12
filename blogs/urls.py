@@ -9,4 +9,7 @@ urlpatterns = [
     path('<int:pk>/', views.BlogRetrieveUpdateDestroyView.as_view(), name='blog-details'),  
     path('<int:pk>/change-status/<str:status_name>/', views.BlogChangeStatusView.as_view(), name='blog-change-status'),
     path('my-blogs/', views.BlogUserBlogsView.as_view(), name='my-blogs'), 
+    
+    path('<int:blog_id>/comments/', views.CommentCreateView.as_view(), name='comment-create'),
+    path('comments/<int:pk>/', views.CommentRetrieveUpdateDestroyView.as_view(), name='comment-details'),
 ]
