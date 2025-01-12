@@ -8,7 +8,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.utils.timezone import now
-
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter
 
 class CategoryListCreateView(ListCreateAPIView):
     queryset = Category.objects.all()
@@ -27,6 +28,9 @@ class CategoryRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
 class BlogListCreateView(ListCreateAPIView):
     serializer_class = BlogSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_fields = ['author', 'category', 'tags__name']
+    search_fields = ['title', 'content', 'tags__name', 'category__name']
     
     def get_queryset(self):
         status_filter = Blog.StatusChoices.PUBLISHED
