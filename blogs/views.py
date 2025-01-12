@@ -12,6 +12,9 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 from django.shortcuts import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
+from notification.utils import send_email_notification
+from notification.email_templates import comment_delete_by_author_notification
+from rest_framework.exceptions import PermissionDenied
 
 class CategoryListCreateView(ListCreateAPIView):
     queryset = Category.objects.all()
@@ -116,12 +119,15 @@ class CommentRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     def perform_update(self, serializer):
         comment = self.get_object()    
         if comment.author != self.request.user:
-            return Response({"detail": "You are not authorized for this action."}, status=status.HTTP_401_UNAUTHORIZED)
+            raise PermissionDenied({"detail": "You are not authorized for this action."})
         serializer.save()
         
     def destroy(self, request, *args, **kwargs):
         comment = self.get_object()    
         if request.user != comment.author and request.user != comment.blog.author:
             return Response({"detail": "You are not authorized for this action."}, status=status.HTTP_401_UNAUTHORIZED)
+        if request.user == comment.blog.author:
+            subject, message = comment_delete_by_author_notification(comment.author, comment.blog, comment)
+            send_email_notification(comment.author, subject, message)
         self.perform_destroy(comment)
         return Response({"detail": "Comment deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
