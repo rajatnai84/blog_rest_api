@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     "users",
     "blogs",
     "notification",
-    
+    "drf_spectacular",
 ]
 
 MIDDLEWARE = [
@@ -127,6 +127,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 SIMPLE_JWT = {
@@ -169,3 +170,10 @@ EMAIL_USE_TLS = env("EMAIL_USE_TLS")
 EMAIL_HOST_USER = env("EMAIL_HOST_USER")  
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Blogs API',
+    'DESCRIPTION': 'Blog sharing platform',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
