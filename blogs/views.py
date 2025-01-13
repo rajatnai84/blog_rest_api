@@ -13,7 +13,7 @@ from rest_framework.filters import SearchFilter
 from django.shortcuts import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
 from notification.utils import send_email_notification
-from notification.email_templates import comment_delete_by_author_notification
+from notification.email_templates import comment_delete_by_author_notification, comment_add_to_author_notification
 from rest_framework.exceptions import PermissionDenied
 
 class CategoryListCreateView(ListCreateAPIView):
@@ -107,8 +107,11 @@ class CommentCreateView(ListCreateAPIView):
         return Comment.objects.filter(blog=blog)
     
     def perform_create(self, serializer):
+        comment = self.get_object()   
         blog_id = self.kwargs.get('blog_id')
         blog = get_object_or_404(Blog, id=blog_id, status=Blog.StatusChoices.PUBLISHED)
+        subject, message = comment_add_to_author_notification(comment.author, comment.blog, comment)
+        send_email_notification(comment.author, subject, message)
         serializer.save(blog=blog, author=self.request.user)
         
 class CommentRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
