@@ -39,7 +39,7 @@ class BlogListCreateView(ListCreateAPIView):
     
     def get_queryset(self):
         status_filter = Blog.StatusChoices.PUBLISHED
-        return Blog.objects.filter(status=status_filter)
+        return Blog.objects.prefetch_related('tags', 'category').filter(status=status_filter)
     
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
