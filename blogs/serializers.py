@@ -40,6 +40,8 @@ class BlogSerializer(serializers.ModelSerializer):
     )
     category_details = CategorySerializer(read_only=True,source='category')
     
+    total_comments = serializers.SerializerMethodField(read_only=True)
+    
     class Meta:
         model = Blog
         fields = '__all__'
@@ -93,3 +95,5 @@ class BlogSerializer(serializers.ModelSerializer):
                 raise ValidationError({"detail":"If blog is published it have publishing date-time."})
         return value
     
+    def get_total_comments(self, obj):
+        return obj.comments.count()
