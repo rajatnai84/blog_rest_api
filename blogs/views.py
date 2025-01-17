@@ -107,12 +107,12 @@ class CommentCreateView(ListCreateAPIView):
         return Comment.objects.filter(blog=blog)
     
     def perform_create(self, serializer):
-        comment = self.get_object()   
         blog_id = self.kwargs.get('blog_id')
         blog = get_object_or_404(Blog, id=blog_id, status=Blog.StatusChoices.PUBLISHED)
+        comment = serializer.save(blog=blog, author=self.request.user)
+        
         subject, message = comment_add_to_author_notification(comment.author, comment.blog, comment)
         send_email_notification(comment.author, subject, message)
-        serializer.save(blog=blog, author=self.request.user)
         
 class CommentRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     serializer_class = CommentSerializer
