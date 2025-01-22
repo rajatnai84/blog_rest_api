@@ -1,6 +1,7 @@
-import { Component, Input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { InvestmentResult } from '../../models/investment';
 import { CurrencyPipe } from '@angular/common';
+import { InvestmentService } from '../../services/investment.service';
 
 @Component({
   selector: 'app-investment',
@@ -10,5 +11,10 @@ import { CurrencyPipe } from '@angular/common';
   styleUrl: './investment.component.css'
 })
 export class InvestmentComponent {
-  @Input() results? : InvestmentResult[];
+  private investmentService = inject(InvestmentService)
+
+  // with computed function we can insure that we are not changing the value outside of the service
+  // else also
+  // results = this.investmentService.resultData.asReadonly();
+  results = computed(() => this.investmentService.resultData())
 }
